@@ -1,6 +1,8 @@
 extern crate blas;
+extern crate lapack;
 
 use blas::c::*;
+use lapack::c::dposv;
 
 fn main() {
     let n = 5;
@@ -11,7 +13,6 @@ fn main() {
     let Sigma = vec![1.0; (n * n) as usize];
     let H = vec![1.0; (k * n) as usize];
     let mu = vec![1.0; n as usize];
-    let data = vec![1.0; k as usize];
     let var_11 = vec![1.0; n as usize];
     let var_5 = vec![1.0; (n * n) as usize];
 
@@ -24,6 +25,7 @@ fn main() {
     let mut R = vec![1.0; (k * k) as usize];
     let mut var_19 = vec![1.0; (n * n) as usize];
     let mut Hvar_2 = vec![1.0; (k * n) as usize];
+    let mut data = vec![1.0; k as usize];
 
     dcopy(n * n, &var_5, 1, &mut var_20, 1);
 
@@ -43,9 +45,17 @@ fn main() {
 
     dcopy(k * n, &H, 1, &mut Hvar_2, 1);
 
+    println!["{:?}", var_17];
+
+    dgemm(Layout::ColumnMajor, Transpose::None, Transpose::None,
+          k, 1, n, alpha,
+          &H, k, &mu, n, -1. * beta, &mut data, k);
+
+    //FIXME:
+//    dposv(lapack::c::Layout::ColumnMajor, 'U' as u8, k, n, &mut R, k, &mut Hvar_2, k);
+
     //TODO:
     /*
-    call dgemm('N', 'N', k, 1, n, 1, H, k, mu, n, -1, data, k)
     call dposv('U', k, n, R, k, Hvar_2, k, INFO)
     call dposv('U', k, 1, R, k, data, k, INFO)
     call dgemm('N', 'N', n, n, k, 1, H, k, Hvar_2, k, 0, var_19, n)
