@@ -4,20 +4,50 @@ use blas::c::*;
 
 fn main() {
 
-    let (m, n, k) = (2, 4, 3);
-    let a = vec![1.0, 4.0, 2.0, 5.0, 3.0, 6.0];
-    let b = vec![1.0, 5.0, 9.0, 2.0, 6.0, 10.0, 3.0, 7.0, 11.0, 4.0, 8.0, 12.0];
-    let mut c = vec![2.0, 7.0, 6.0, 2.0, 0.0, 7.0, 4.0, 2.0];
+    let n = 5;
+    let k = 10;
+    let alpha = 1.0;
+    let beta = 0.0;
 
-    dgemm(Layout::ColumnMajor, Transpose::None, Transpose::None,
-          m, n, k, 1.0, &a, m, &b, k, 1.0, &mut c, m);
+    let Sigma =             vec![1.0; (n * n) as usize];
+    let H =                 vec![1.0; (k * n) as usize];
+    let mu =                vec![1.0; n as usize];
+    let R =                 vec![1.0; (k * k) as usize];
+    let data =              vec![1.0; k as usize];
+    let Hvar_2 =            vec![1.0; (k * n) as usize];
+    let var_11 =            vec![1.0; n as usize];
+    let var_19 =            vec![1.0; (n * n) as usize];
+    let var_5 =             vec![1.0; (n * n) as usize];
 
-    assert_eq!(&c, &vec![40.0, 90.0, 50.0, 100.0, 50.0, 120.0, 60.0, 130.0]);
+    let mut var_20 =        vec![1.0; (n * n) as usize];
+    let mut INFO =          -1;
+    let mut muvar_2 =       vec![1.0; (n * n) as usize];
+    let mut Sigmavar_2 =    vec![1.0; (n * n) as usize];
+    let mut var_17 =        vec![1.0; (n * k) as usize];
 
-    let n = 10;
-    let k = 1;
+    dcopy(
+        n*n,
+        &var_5,
+        1,
+        &mut var_20,
+        1);
+
+    dsymm(
+        Layout::ColumnMajor,
+        Side::Left,
+        Part::Upper,
+        n,
+        k,
+        alpha,
+        &Sigma,
+        n,
+        &H,
+        k,
+        beta,
+        &mut var_17,
+        n);
+
     
-
 }
 
 
